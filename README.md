@@ -100,27 +100,27 @@ module "api_gateway" {
 
 ### 🔹 Configuración General
 
-| Nombre          | Tipo   | Descripción |
-|----------------|--------|-------------|
-| `client`       | string | Nombre del cliente. |
-| `environment`  | string | Entorno de despliegue (dev, staging, prod, etc.). |
-| `project`      | string | Nombre del proyecto. |
-| `functionality`| string | Funcionalidad específica dentro del proyecto. |
-| `application`  | string | Nombre de la aplicación asociada al API Gateway. |
-| `aws_region`   | string | Región de AWS donde se desplegará la infraestructura. |
+| Nombre          | Tipo   | Descripción | Predeterminado | Obligatorio |
+|-----------------|--------|-------------|----------------|-------------|
+| `client`        | string | Nombre del cliente. | - | Sí |
+| `environment`   | string | Entorno de despliegue (dev, staging, prod, etc.). | - | Sí |
+| `project`       | string | Nombre del proyecto. | - | Sí |
+| `functionality` | string | Funcionalidad específica dentro del proyecto. | - | Sí |
+| `application`   | string | Nombre de la aplicación asociada al API Gateway. | - | Sí |
+| `aws_region`    | string | Región de AWS donde se desplegará la infraestructura. | - | Sí |
 
 ### 🔹 Configuración del API Gateway
 
-| Nombre            | Tipo   | Descripción |
-|-------------------|--------|-------------|
-| `endpoint_type`   | string | Tipo de endpoint del API Gateway: `PRIVATE`, `REGIONAL` o `EDGE`. Predeterminado: `REGIONAL`. |
-| `private_api_vpce` | string | ID del VPC Endpoint autorizado para acceder a la API privada. Requerido si `endpoint_type` es `PRIVATE`. |
+| Nombre            | Tipo   | Descripción | Predeterminado | Obligatorio |
+|-------------------|--------|-------------|----------------|-------------|
+| `endpoint_type`   | string | Tipo de endpoint del API Gateway: `PRIVATE`, `REGIONAL` o `EDGE`. | `REGIONAL` | No |
+| `private_api_vpce`| string | ID del VPC Endpoint autorizado para acceder a la API privada. | - | Sí (si `endpoint_type` es `PRIVATE`) |
 
 ### 🔹 Definición de Recursos y Métodos
 
-| Nombre       | Tipo | Descripción |
-|-------------|------|-------------|
-| `resources` | list(object) | Lista de recursos y sus métodos en el API Gateway. Cada recurso debe incluir:
+| Nombre       | Tipo          | Descripción | Predeterminado | Obligatorio |
+|--------------|---------------|-------------|----------------|-------------|
+| `resources`  | list(object)  | Lista de recursos y sus métodos en el API Gateway. Cada recurso debe incluir: 
   - `resource_name` (string): Nombre del recurso.
   - `path_part` (string): Parte de la ruta del recurso.
   - `methods` (list): Métodos HTTP soportados con:
@@ -128,22 +128,22 @@ module "api_gateway" {
     - `authorization` (string): Tipo de autorización (`NONE`, `COGNITO_USER_POOLS`, etc.).
     - `integration_type` (string): Tipo de integración (`LAMBDA`, `HTTP`, `VPC`).
     - `lambda_function_arn` (string, opcional): ARN de la función Lambda si `integration_type` es `LAMBDA`.
-    - `http_uri` (string, opcional): URI de destino si `integration_type` es `HTTP`. |
+    - `http_uri` (string, opcional): URI de destino si `integration_type` es `HTTP` o `VPC`. | - | Sí |
 
 ### 🔹 Configuración de VPC Link
 
-| Nombre                  | Tipo        | Descripción |
-|-------------------------|------------|-------------|
-| `vpc_link_description`  | string     | Descripción del VPC Link. Predeterminado: `VPC Link para automatico`. |
-| `vpc_link_target_arns`  | list(string) | Lista de ARNs de los Network Load Balancers (o endpoints) para el VPC Link. |
+| Nombre                  | Tipo        | Descripción | Predeterminado | Obligatorio |
+|-------------------------|-------------|-------------|----------------|-------------|
+| `vpc_link_description`   | string      | Descripción del VPC Link. | `VPC Link para automatico` | No |
+| `vpc_link_target_arns`   | list(string) | Lista de ARNs de los Network Load Balancers (o endpoints) para el VPC Link. | - | Sí |
 
 ### 🔹 Configuración de Cognito
 
-| Nombre                   | Tipo        | Descripción |
-|--------------------------|------------|-------------|
-| `cognito_user_pool_arns` | list(string) | Lista de ARNs de los User Pools de Cognito para autenticación. |
-| `cognito_authorizer_name` | string     | Nombre del autorizador de Cognito. Predeterminado: `CognitoAuthorizer`. |
-| `cognito_identity_source` | string     | Origen de la identidad, generalmente el header de autorización. Predeterminado: `method.request.header.Authorization`. |
+| Nombre                   | Tipo        | Descripción | Predeterminado | Obligatorio |
+|--------------------------|-------------|-------------|----------------|-------------|
+| `cognito_user_pool_arns`  | list(string) | Lista de ARNs de los User Pools de Cognito para autenticación. | - | Sí |
+| `cognito_authorizer_name` | string      | Nombre del autorizador de Cognito. | `CognitoAuthorizer` | No |
+| `cognito_identity_source` | string      | Origen de la identidad, generalmente el header de autorización. | `method.request.header.Authorization` | No |
 
 ### 📤 Outputs
 
