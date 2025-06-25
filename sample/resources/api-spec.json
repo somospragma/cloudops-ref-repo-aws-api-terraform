@@ -1,0 +1,28 @@
+{
+    "swagger": "2.0",
+    "info": {
+      "title": "${api_name}",
+      "version": "1.0"
+    },
+    "paths": {
+      "/hello": {
+        "get": {
+          "responses": {
+            "200": {
+              "description": "OK"
+            }
+          },
+          "x-amazon-apigateway-integration": {
+            "type": "aws_proxy",
+            "httpMethod": "POST",
+            "uri": "arn:aws:apigateway:${aws_region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${aws_region}:${account_id}:function:${lambda_function_name}/invocations",
+            "responses": {
+              "default": {
+                "statusCode": "200"
+              }
+            }
+          }
+        }
+      }
+    }
+  }

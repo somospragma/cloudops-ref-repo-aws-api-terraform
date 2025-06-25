@@ -1,25 +1,23 @@
-module "api_gateway" {
-  source         = "./module/api_gateway"
-
-  # Variables de nombramiento
-  client        = var.client
-  project       = var.project
-  environment   = var.environment
-  application   = var.application
-  functionality = var.functionality
-  aws_region    = var.aws_region
-
-  # Categoria de la API REST
-  endpoint_type        = var.endpoint_type
-
-  # En caso de necesitar Cognito
-  cognito_user_pool_arns = var.cognito_user_pool_arns
-
-  # En caso de que sea privada
-  private_api_vpce     = var.private_api_vpce
-  vpc_link_description = var.vpc_link_description
-  vpc_link_target_arns = var.vpc_link_target_arns
+module "api" {
+  source = "../"
   
-  #configuración principal
-  resources = var.resources
+  providers = {
+    aws.project = aws.principal
+  }
+  
+  aws_region        = var.aws_region
+  environment       = var.environment
+  client            = var.client
+  project           = var.project
+  application       = var.application 
+  functionality     = var.functionality
+
+  common_tags       = var.common_tags
+
+  lambda_name       = var.lambda_name
+  stage_name        = var.stage_name
+  api_template      = var.api_template
+  api_template_vars = var.api_template_vars
+  endpoint_type     = var.endpoint_type
+  private_api_vpce  = var.private_api_vpce
 }

@@ -1,0 +1,32 @@
+###############################################################
+# Variables Globales
+###############################################################
+
+profile            = "aws-local-profile"
+aws_region         = "us-east-1"
+environment        = "dev"
+client             = "pragma"
+project            = "hefesto"
+application        = "gateway"
+functionality      = "sample"  
+
+common_tags = {
+  environment   = "dev"
+  project-name  = "Modulos Referencia"
+  cost-center   = "-"
+  owner         = "cristian.noguera@pragma.com.co"
+  area          = "KCCC"
+  provisioned   = "terraform"
+  datatype      = "interno"
+}
+
+###############################################################
+# Variables API GATEWAY
+###############################################################
+
+lambda_name       = "test-api"
+stage_name        = "v1"
+api_template_vars = {
+  stage_name = "v1"
+}
+private_api_vpce  = null
