@@ -6,3 +6,8 @@ locals {
     lambda_function_name  = "${var.client}-${var.project}-${var.environment}-${var.lambda_name}"
   })
 }
+
+data "template_file" "api_template" {
+  template = base64decode(var.api_template)
+  vars     = local.variables
+}
