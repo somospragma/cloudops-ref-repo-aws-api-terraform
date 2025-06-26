@@ -7,12 +7,12 @@ module "api" {
   
   aws_region        = var.aws_region
   environment       = var.environment
+  common_tags       = var.common_tags
+
   client            = var.client
   project           = var.project
   application       = var.application 
   functionality     = var.functionality
-
-  common_tags       = var.common_tags
 
   lambda_name       = var.lambda_name
   stage_name        = var.stage_name
