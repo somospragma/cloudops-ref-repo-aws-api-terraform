@@ -3,7 +3,7 @@ resource "aws_api_gateway_rest_api" "this" {
   provider    = aws.project
   name        = "${var.project}-${var.client}-${var.environment}-api-${var.application}-${var.functionality}"
   description = "API Gateway"
-  body        = templatefile(var.api_template, local.variables)
+  body        = data.template_file.api_template.rendered
 
   endpoint_configuration {
     types            = [upper(var.endpoint_type)]
