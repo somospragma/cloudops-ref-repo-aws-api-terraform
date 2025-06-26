@@ -1,3 +1,13 @@
 locals {
-  variables = merge(var.api_template_vars, { account_id = data.aws_caller_identity.current.account_id })
+  variables = merge(var.api_template_vars, { 
+    api_name = "${var.project}-${var.client}-${var.environment}-api-${var.application}-${var.functionality}",
+    aws_region = var.aws_region
+    account_id = data.aws_caller_identity.current.account_id 
+    lambda_function_name  = "${var.client}-${var.project}-${var.environment}-${var.lambda_name}"
+  })
+}
+
+data "template_file" "api_template" {
+  template = base64decode(var.api_template)
+  vars     = local.variables
 }
