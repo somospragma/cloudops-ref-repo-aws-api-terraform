@@ -5,9 +5,6 @@ locals {
     account_id = data.aws_caller_identity.current.account_id 
     lambda_function_name  = "${var.client}-${var.project}-${var.environment}-${var.lambda_name}"
   })
-}
 
-data "template_file" "api_template" {
-  template = base64decode(var.api_template)
-  vars     = local.variables
+  base64_api_template = split("base64,", var.api_template)[1]
 }
