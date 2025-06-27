@@ -2,7 +2,7 @@ module "api" {
   source = "../"
   
   providers = {
-    aws.project = aws.principal
+    aws.project = aws.project
   }
   
   aws_region        = var.aws_region
