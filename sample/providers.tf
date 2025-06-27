@@ -2,7 +2,7 @@
 # Provider AWS
 ######################################################################
 provider "aws" {
-  alias   = "principal"
+  alias   = "project"
   region  = var.aws_region
   profile = var.profile
 
@@ -25,6 +25,10 @@ terraform {
     aws = {
       source  = "hashicorp/aws"
       version = ">=4.31.0"
+    }
+    template = {
+      source  = "hashicorp/template"
+      version = "~> 2.2"
     }
   }
 }

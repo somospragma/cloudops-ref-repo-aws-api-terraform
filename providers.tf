@@ -6,5 +6,9 @@ terraform {
       version = ">=4.31.0"
       configuration_aliases = [aws.project]
     }
+    template = {
+      source  = "hashicorp/template"
+      version = "~> 2.2"
+    }
   }
 }
