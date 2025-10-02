@@ -7,3 +7,8 @@ output "invoke_url" {
   description = "URL para invocar el API Gateway (incluye el stage)"
   value       = aws_api_gateway_stage.stage.invoke_url
 }
+
+output "stage_arn" {
+  description = "Stage ARN"
+  value       = aws_api_gateway_stage.stage.arn
+}
