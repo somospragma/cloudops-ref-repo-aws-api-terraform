@@ -20,4 +20,7 @@ module "api" {
   api_template_vars = var.api_template_vars
   endpoint_type     = var.endpoint_type
   private_api_vpce  = var.private_api_vpce
+  
+  custom_domain_name = var.custom_domain_name
+  certificate_arn    = var.certificate_arn
 }

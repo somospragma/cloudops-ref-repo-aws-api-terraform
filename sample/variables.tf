@@ -63,3 +63,15 @@ variable "private_api_vpce" {
   type        = string
   # Debes asignar un valor si usas endpoint_type = "PRIVATE"
 }
+
+variable "custom_domain_name" {
+  description = "Custom domain name for API Gateway"
+  type        = string
+  default     = null
+}
+
+variable "certificate_arn" {
+  description = "ACM certificate ARN for custom domain"
+  type        = string
+  default     = null
+}

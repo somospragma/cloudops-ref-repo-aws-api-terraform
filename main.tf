@@ -38,3 +38,29 @@ resource "aws_api_gateway_stage" "stage" {
     { Name = "${var.project}-${var.client}-${var.environment}-api-${var.application}-${var.functionality}" },
   )
 }
+
+# Custom Domain Name
+resource "aws_api_gateway_domain_name" "this" {
+  count           = var.custom_domain_name != null ? 1 : 0
+  provider        = aws.project
+  domain_name     = var.custom_domain_name
+  certificate_arn = var.certificate_arn
+
+  endpoint_configuration {
+    types = [upper(var.endpoint_type)]
+  }
+
+  tags = merge(
+    var.common_tags,
+    { Name = "${var.project}-${var.client}-${var.environment}-api-${var.application}-${var.functionality}-domain" },
+  )
+}
+
+# Base Path Mapping
+resource "aws_api_gateway_base_path_mapping" "this" {
+  count       = var.custom_domain_name != null ? 1 : 0
+  provider    = aws.project
+  api_id      = aws_api_gateway_rest_api.this.id
+  stage_name  = aws_api_gateway_stage.stage.stage_name
+  domain_name = aws_api_gateway_domain_name.this[0].domain_name
+}
