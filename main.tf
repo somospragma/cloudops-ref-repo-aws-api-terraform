@@ -41,10 +41,11 @@ resource "aws_api_gateway_stage" "stage" {
 
 # Custom Domain Name
 resource "aws_api_gateway_domain_name" "this" {
-  count           = var.custom_domain_name != null ? 1 : 0
-  provider        = aws.project
-  domain_name     = var.custom_domain_name
-  certificate_arn = var.certificate_arn
+  count                    = var.custom_domain_name != null ? 1 : 0
+  provider                 = aws.project
+  domain_name              = var.custom_domain_name
+  certificate_arn          = upper(var.endpoint_type) == "EDGE" ? var.certificate_arn : null
+  regional_certificate_arn = upper(var.endpoint_type) == "REGIONAL" ? var.certificate_arn : null
 
   endpoint_configuration {
     types = [upper(var.endpoint_type)]
