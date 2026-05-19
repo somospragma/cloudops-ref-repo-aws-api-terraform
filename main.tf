@@ -1,7 +1,7 @@
 # Crea el API Gateway con el tipo de endpoint seleccionado
 resource "aws_api_gateway_rest_api" "this" {
   provider    = aws.project
-  name        = "${var.project}-${var.client}-${var.environment}-api-${var.application}-${var.functionality}"
+  name        = local.api_name
   description = "API Gateway"
   body        = data.template_file.api_template.rendered
 
@@ -36,7 +36,7 @@ resource "aws_api_gateway_stage" "stage" {
 
   tags = merge(
     var.common_tags,
-    { Name = "${var.project}-${var.client}-${var.environment}-api-${var.application}-${var.functionality}" },
+    { Name = local.api_name },
   )
 }
 
@@ -54,7 +54,7 @@ resource "aws_api_gateway_domain_name" "this" {
 
   tags = merge(
     var.common_tags,
-    { Name = "${var.project}-${var.client}-${var.environment}-api-${var.application}-${var.functionality}-domain" },
+    { Name = local.domain_name },
   )
 }
 
@@ -73,25 +73,25 @@ resource "aws_api_gateway_base_path_mapping" "this" {
 
 # API Keys
 resource "aws_api_gateway_api_key" "this" {
-  for_each = var.api_keys
+  for_each = local.api_keys_config
   provider = aws.project
 
-  name        = "${var.project}-${var.client}-${var.environment}-apikey-${var.application}-${each.key}"
+  name        = each.value.apikey_name
   description = each.value.description
   enabled     = each.value.enabled
 
   tags = merge(
     var.common_tags,
-    { Name = "${var.project}-${var.client}-${var.environment}-apikey-${var.application}-${each.key}" },
+    { Name = each.value.apikey_name },
   )
 }
 
 # Usage Plans (uno por cada API Key)
 resource "aws_api_gateway_usage_plan" "this" {
-  for_each = var.api_keys
+  for_each = local.api_keys_config
   provider = aws.project
 
-  name = "${var.project}-${var.client}-${var.environment}-usageplan-${var.application}-${each.key}"
+  name = each.value.usageplan_name
 
   api_stages {
     api_id = aws_api_gateway_rest_api.this.id
@@ -110,7 +110,7 @@ resource "aws_api_gateway_usage_plan" "this" {
 
   tags = merge(
     var.common_tags,
-    { Name = "${var.project}-${var.client}-${var.environment}-usageplan-${var.application}-${each.key}" },
+    { Name = each.value.usageplan_name },
   )
 
   depends_on = [aws_api_gateway_stage.stage]
@@ -118,7 +118,7 @@ resource "aws_api_gateway_usage_plan" "this" {
 
 # Asociación API Key con Usage Plan
 resource "aws_api_gateway_usage_plan_key" "this" {
-  for_each = var.api_keys
+  for_each = local.api_keys_config
   provider = aws.project
 
   key_id        = aws_api_gateway_api_key.this[each.key].id
