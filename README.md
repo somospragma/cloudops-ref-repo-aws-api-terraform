@@ -11,6 +11,7 @@ Este módulo crea un API Gateway REST con las siguientes capacidades:
 - Deployment automático con stage configurable
 - Custom Domain Name con certificado ACM (opcional)
 - Base Path Mapping al stage (opcional)
+- **API Keys y Usage Plans** con throttling y quotas configurables (opcional)
 - Nomenclatura construida internamente: `{project}-{client}-{environment}-api-{application}-{functionality}`
 
 ## Uso Básico
@@ -118,8 +119,39 @@ certificate_arn    = "arn:aws:acm:us-east-1:123456789012:certificate/abc-123"
 
 > Para endpoints EDGE, el certificado ACM debe estar en `us-east-1`. Para REGIONAL, debe estar en la misma región del API Gateway.
 
+### 5. API con API Keys y Usage Plans
 
-### 5. Variables del template Swagger
+El módulo permite crear múltiples API Keys con sus respectivos Usage Plans usando un mapa de configuración (PC-IAC-002, PC-IAC-010):
+
+```hcl
+# terraform.tfvars
+api_keys = {
+  "main" = {
+    description  = "API Key principal para la aplicación"
+    enabled      = true
+    rate_limit   = 100    # requests por segundo
+    burst_limit  = 200    # pico máximo de requests
+    quota_limit  = 100000 # límite total por período
+    quota_period = "MONTH"
+  }
+  "partner" = {
+    description  = "API Key para integraciones de partners"
+    rate_limit   = 50
+    burst_limit  = 100
+    quota_limit  = 50000
+    quota_period = "MONTH"
+  }
+}
+```
+
+Cada API Key genera automáticamente:
+- Un recurso `aws_api_gateway_api_key` con nomenclatura: `{project}-{client}-{environment}-apikey-{application}-{key}`
+- Un recurso `aws_api_gateway_usage_plan` asociado al stage
+- La asociación `aws_api_gateway_usage_plan_key` entre ambos
+
+> **Nota:** Para usar API Keys, los endpoints en el template Swagger deben tener `"security": [{"api_key": []}]` y el `securityDefinitions` correspondiente.
+
+### 6. Variables del template Swagger
 
 El módulo inyecta automáticamente las siguientes variables al template Swagger a través de `locals.tf`:
 
@@ -151,6 +183,22 @@ Además, cualquier variable adicional pasada en `api_template_vars` se fusiona c
 | `private_api_vpce` | `string` | No* | — | ID del VPC Endpoint para APIs privadas. *Requerido si `endpoint_type = "PRIVATE"` |
 | `custom_domain_name` | `string` | No | `null` | Nombre de dominio personalizado |
 | `certificate_arn` | `string` | No | `null` | ARN del certificado ACM para el dominio personalizado |
+| `api_keys` | `map(object)` | No | `{}` | Mapa de API Keys a crear (ver estructura abajo) |
+
+### Estructura de `api_keys`
+
+```hcl
+api_keys = {
+  "<key_name>" = {
+    enabled      = bool   # (opcional, default: true) Habilitar el API Key
+    description  = string # (opcional, default: "") Descripción del API Key
+    rate_limit   = number # (opcional, default: 10) Requests por segundo
+    burst_limit  = number # (opcional, default: 20) Pico máximo de requests
+    quota_limit  = number # (opcional, default: 50000) Límite total por período
+    quota_period = string # (opcional, default: "MONTH") Período: DAY, WEEK, MONTH
+  }
+}
+```
 
 ## Outputs
 
@@ -161,6 +209,9 @@ Además, cualquier variable adicional pasada en `api_template_vars` se fusiona c
 | `stage_arn` | `string` | ARN del stage |
 | `custom_domain_name` | `string` | Nombre del dominio personalizado (null si no se configuró) |
 | `domain_name_target` | `string` | Dominio destino para configuración DNS (CloudFront o regional, según endpoint) |
+| `api_keys` | `map(object)` | Mapa de API Keys creados con `id`, `name`, `arn` |
+| `api_key_values` | `map(string)` | Valores de los API Keys (sensible) |
+| `usage_plans` | `map(object)` | Mapa de Usage Plans creados con `id`, `name`, `arn` |
 
 ## Requisitos
 
@@ -199,12 +250,13 @@ El nombre de la función Lambda referenciada se construye en `locals.tf`:
 | Regla | Descripción | Implementación |
 |---|---|---|
 | PC-IAC-001 | Estructura de Módulo | 7 archivos raíz + 8 archivos en `sample/` |
-| PC-IAC-002 | Variables | Variables tipadas con descripciones y defaults donde aplica |
+| PC-IAC-002 | Variables | Variables tipadas con `map(object)` para API Keys (estabilidad con `for_each`) |
 | PC-IAC-003 | Nomenclatura | Nombre construido en `main.tf`: `{project}-{client}-{env}-api-{app}-{func}` |
 | PC-IAC-004 | Tagging | `merge()` de `common_tags` + `Name` en cada recurso |
 | PC-IAC-005 | Providers | Alias `aws.project` con `provider = aws.project` explícito |
-| PC-IAC-007 | Outputs | Granulares: `rest_api_id`, `invoke_url`, `stage_arn`, dominio |
-| PC-IAC-023 | Responsabilidad Única | Solo recursos intrínsecos a API Gateway (REST API, deployment, stage, domain) |
+| PC-IAC-007 | Outputs | Granulares: `rest_api_id`, `invoke_url`, `stage_arn`, dominio, `api_keys`, `usage_plans` |
+| PC-IAC-010 | For_Each | API Keys y Usage Plans usan `for_each` sobre `var.api_keys` |
+| PC-IAC-023 | Responsabilidad Única | Solo recursos intrínsecos a API Gateway (REST API, deployment, stage, domain, API Keys) |
 | PC-IAC-026 | Patrón sample/ | `tfvars` → `data.tf` → `locals.tf` → `main.tf` → `../` |
 
 ## Decisiones de Diseño
@@ -220,6 +272,8 @@ El nombre de la función Lambda referenciada se construye en `locals.tf`:
 - **Sin creación de certificados ACM ni registros DNS:** Siguiendo PC-IAC-023, el módulo no crea recursos de seguridad ni DNS. Los ARNs de certificados se reciben como variables de entrada y la configuración DNS es responsabilidad del consumidor.
 
 - **Soporte multi-endpoint:** El módulo soporta los tres tipos de endpoint de API Gateway (REGIONAL, EDGE, PRIVATE) mediante una sola variable, adaptando automáticamente la configuración de VPC Endpoints y certificados.
+
+- **API Keys como `map(object)`:** Siguiendo PC-IAC-002 y PC-IAC-010, los API Keys se definen como un mapa para permitir múltiples keys con `for_each`, garantizando estabilidad del estado de Terraform al agregar o eliminar keys.
 
 ---
 

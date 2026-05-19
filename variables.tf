@@ -15,23 +15,23 @@ variable "client" {
 }
 
 variable "project" {
-  type = string  
+  type = string
 }
 
 variable "application" {
-  type = string  
+  type = string
 }
 
 variable "functionality" {
-  type = string  
+  type = string
 }
 
 variable "lambda_name" {
-  type = string  
+  type = string
 }
 
 variable "stage_name" {
-  type = string  
+  type = string
 }
 
 variable "api_template" {
@@ -64,4 +64,27 @@ variable "certificate_arn" {
   description = "ACM certificate ARN for custom domain"
   type        = string
   default     = null
+}
+
+######################################################################
+# API Keys y Usage Plans (PC-IAC-002, PC-IAC-009, PC-IAC-010)
+######################################################################
+variable "api_keys" {
+  description = "Mapa de API Keys a crear. Cada key del mapa es el identificador único del API Key."
+  type = map(object({
+    enabled      = optional(bool, true)
+    description  = optional(string, "")
+    rate_limit   = optional(number, 10)
+    burst_limit  = optional(number, 20)
+    quota_limit  = optional(number, 50000)
+    quota_period = optional(string, "MONTH")
+  }))
+  default = {}
+
+  validation {
+    condition = alltrue([
+      for k, v in var.api_keys : contains(["DAY", "WEEK", "MONTH"], v.quota_period)
+    ])
+    error_message = "El quota_period debe ser: DAY, WEEK o MONTH."
+  }
 }
